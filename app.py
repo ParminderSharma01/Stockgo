@@ -2,110 +2,149 @@ import streamlit as st
 import yfinance as yf
 import pandas as pd
 import plotly.express as px
+import random
 from pypfopt import expected_returns, risk_models
 from pypfopt.efficient_frontier import EfficientFrontier
 
 # --- PAGE CONFIG ---
 st.set_page_config(page_title="StockGo | AI Portfolio", layout="wide", initial_sidebar_state="collapsed")
 
-# --- CSS INJECTION (NO-SCROLL LUXURY UI) ---
-luxury_css = """
+# --- DYNAMIC BACKGROUND GENERATOR ---
+@st.cache_data
+def get_floating_background():
+    tickers_pool = [
+        "AAPL 150.25", "MSFT 310.10", "TSLA 220.50", "NVDA 450.00", "RELIANCE 2500.00", 
+        "GOOGL 135.20", "AMZN 140.50", "META 300.20", "JNJ 160.00", "V 240.10", 
+        "TCS 3400.15", "INFY 1450.80", "HDFC 1600.00", "NFLX 400.20", "INTC 35.10"
+    ]
+    
+    html = '<div class="stock-ticker-background">'
+    # Generate 75 floating stock tickers
+    for _ in range(75):
+        t = random.choice(tickers_pool)
+        
+        # Randomize arrow up/down and color (Blue/Red)
+        is_up = random.choice([True, False])
+        is_blue = random.choice([True, False])
+        arrow = "▲" if is_up else "▼"
+        color = "#3b82f6" if is_blue else "#ef4444" # Deep Blue or Bright Red
+        pct = round(random.uniform(0.1, 5.5), 1)
+        
+        colored_arrow = f'<span style="color: {color}; text-shadow: 0 0 5px {color}80;">{arrow} {pct}%</span>'
+        
+        # Randomize position, size, and animation
+        left = random.randint(-10, 100)
+        top = random.randint(-10, 100)
+        dur = random.randint(25, 60)
+        delay = random.randint(0, 40)
+        anim = random.choice(['float-1', 'float-2', 'float-3', 'float-4'])
+        size = random.choice(['14px', '18px', '24px', '32px']) # Creates a 3D depth effect
+        target_op = random.choice(['0.1', '0.2', '0.3'])
+        
+        style = f"left: {left}vw; top: {top}vh; --target-opacity: {target_op}; font-size: {size}; animation: {anim} {dur}s linear infinite -{delay}s, fade {dur}s linear infinite -{delay}s;"
+        html += f'<div class="floating-ticker" style="{style}">{t} {colored_arrow}</div>'
+        
+    html += '</div>'
+    return html
+
+# --- CSS INJECTION (NO-SCROLL & FLOATING PARTICLES) ---
+luxury_css = f"""
 <style>
 /* 1. LOCK THE SCREEN (NO SCROLLING) */
-html, body, [data-testid="stAppViewContainer"], [data-testid="stAppViewBlockContainer"] {
+html, body, [data-testid="stAppViewContainer"], [data-testid="stAppViewBlockContainer"] {{
     overflow: hidden !important; 
     max-height: 100vh !important;
-}
+}}
 
 /* Hide Streamlit default padding and menus */
-#MainMenu {visibility: hidden;}
-footer {visibility: hidden;}
-header {visibility: hidden;}
-.css-18e3th9 {padding-top: 0rem;} /* Older Streamlit versions */
-div[data-testid="stAppViewBlockContainer"] {
+#MainMenu {{visibility: hidden;}}
+footer {{visibility: hidden;}}
+header {{visibility: hidden;}}
+.css-18e3th9 {{padding-top: 0rem;}} 
+div[data-testid="stAppViewBlockContainer"] {{
     padding-top: 2vh !important;
     padding-bottom: 0 !important;
-}
+}}
 
-/* The Animated Background Ticker */
-.stock-ticker-background {
+/* Particle Background Setup */
+.stock-ticker-background {{
     position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
+    top: 0; left: 0; width: 100vw; height: 100vh;
     z-index: -999;
     background-color: #050505;
     overflow: hidden;
-    opacity: 0.15; 
+}}
+.floating-ticker {{
+    position: absolute;
     font-family: 'Courier New', Courier, monospace;
     font-weight: bold;
     color: #d4af37; 
-    font-size: 28px;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-around;
-}
-.ticker-row { white-space: nowrap; animation: scroll-left linear infinite; }
-.ticker-fast { animation-duration: 25s; }
-.ticker-slow { animation-duration: 40s; animation-direction: reverse; }
-@keyframes scroll-left { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
+    white-space: nowrap;
+    opacity: 0; /* Base opacity, handled by keyframes */
+}}
 
-/* Frosted Glass Container - Compacted for 1 screen */
-.block-container {
+/* Random Drift Animations */
+@keyframes float-1 {{ 0% {{ transform: translate(0, 0) scale(1); }} 100% {{ transform: translate(15vw, -15vh) scale(1.1); }} }}
+@keyframes float-2 {{ 0% {{ transform: translate(0, 0) scale(1); }} 100% {{ transform: translate(-15vw, -20vh) scale(1.1); }} }}
+@keyframes float-3 {{ 0% {{ transform: translate(0, 0) scale(1); }} 100% {{ transform: translate(20vw, 15vh) scale(0.9); }} }}
+@keyframes float-4 {{ 0% {{ transform: translate(0, 0) scale(1); }} 100% {{ transform: translate(-20vw, 15vh) scale(0.9); }} }}
+@keyframes fade {{ 0% {{ opacity: 0; }} 15% {{ opacity: var(--target-opacity); }} 85% {{ opacity: var(--target-opacity); }} 100% {{ opacity: 0; }} }}
+
+/* Frosted Glass Container */
+.block-container {{
     background: rgba(15, 15, 15, 0.85);
     backdrop-filter: blur(15px);
     -webkit-backdrop-filter: blur(15px);
     border-radius: 20px;
-    padding: 2rem 3rem !important; /* Tighter padding */
+    padding: 2rem 3rem !important; 
     border: 1px solid rgba(212, 175, 55, 0.3);
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
     max-width: 950px;
     margin-top: 2vh; 
-}
+}}
 
 /* Premium Buttons */
-.stButton>button {
+.stButton>button {{
     border-radius: 12px;
     background: linear-gradient(135deg, #d4af37 0%, #aa8529 100%);
     color: #000000 !important;
     font-weight: 700;
     font-size: 16px;
     border: none;
-    padding: 10px 30px; /* Slightly thinner */
+    padding: 10px 30px; 
     box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
     transition: all 0.3s ease;
     width: 100%;
     margin-top: 10px;
-}
-.stButton>button:hover {
+}}
+.stButton>button:hover {{
     transform: translateY(-2px);
     box-shadow: 0 6px 20px rgba(212, 175, 55, 0.5);
     background: linear-gradient(135deg, #f3cd57 0%, #c59b2f 100%);
-}
-.stButton>button:active { transform: translateY(0px); }
+}}
+.stButton>button:active {{ transform: translateY(0px); }}
 
 /* Table Styling */
-.stDataFrame { border-radius: 10px; overflow: hidden; }
+.stDataFrame {{ border-radius: 10px; overflow: hidden; }}
 
-/* --- LUXURY TYPOGRAPHY (Compacted) --- */
-.gradient-text {
+/* --- LUXURY TYPOGRAPHY --- */
+.gradient-text {{
     background: linear-gradient(135deg, #d4af37 0%, #fefaa0 50%, #d4af37 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    font-size: 2.8rem !important; /* Slightly smaller to fit */
+    font-size: 2.8rem !important; 
     font-weight: 800;
     margin-bottom: -10px;
     padding-bottom: 10px;
-}
-.engine-text {
+}}
+.engine-text {{
     font-size: 1.3rem;
     color: #ffffff;
     font-weight: 600;
     letter-spacing: 1px;
     margin-bottom: 10px;
-}
-.motivational-subtext {
+}}
+.motivational-subtext {{
     font-size: 1.05rem;
     color: #b3b3b3;
     font-weight: 300;
@@ -113,17 +152,13 @@ div[data-testid="stAppViewBlockContainer"] {
     line-height: 1.4;
     border-left: 3px solid #d4af37;
     padding-left: 15px;
-    margin-bottom: 20px; /* Tighter gap */
-}
+    margin-bottom: 20px; 
+}}
 </style>
-
-<div class="stock-ticker-background">
-   <div class="ticker-row ticker-fast">AAPL 150.25 ▲ 1.2% &nbsp;&nbsp; MSFT 310.10 ▼ 0.5% &nbsp;&nbsp; TSLA 220.50 ▲ 2.1% &nbsp;&nbsp; NVDA 450.00 ▲ 3.5% &nbsp;&nbsp; RELIANCE 2500.00 ▲ 1.0% &nbsp;&nbsp; AAPL 150.25 ▲ 1.2%</div>
-   <div class="ticker-row ticker-slow">GOOGL 135.20 ▲ 0.8% &nbsp;&nbsp; AMZN 140.50 ▼ 1.1% &nbsp;&nbsp; META 300.20 ▲ 1.5% &nbsp;&nbsp; JNJ 160.00 ▼ 0.2% &nbsp;&nbsp; V 240.10 ▲ 0.9% &nbsp;&nbsp; GOOGL 135.20 ▲ 0.8%</div>
-   <div class="ticker-row ticker-fast" style="animation-duration: 20s;">TCS 3400.15 ▲ 0.5% &nbsp;&nbsp; INFY 1450.80 ▲ 1.2% &nbsp;&nbsp; HDFC 1600.00 ▼ 0.4% &nbsp;&nbsp; NFLX 400.20 ▲ 2.2% &nbsp;&nbsp; INTC 35.10 ▼ 1.5% &nbsp;&nbsp; TCS 3400.15 ▲ 0.5%</div>
-</div>
 """
-st.markdown(luxury_css, unsafe_allow_html=True)
+
+# Inject CSS + Dynamic Background
+st.markdown(luxury_css + get_floating_background(), unsafe_allow_html=True)
 
 # --- STATE MANAGEMENT ---
 if 'page' not in st.session_state:
@@ -249,7 +284,7 @@ elif st.session_state.page == "results":
     
     df = st.session_state.df
     
-    # Authentic Plotly Donut Chart - Height explicitly restricted
+    # Authentic Plotly Donut Chart
     fig = px.pie(
         df, 
         values='Capital ($)', 
@@ -263,7 +298,7 @@ elif st.session_state.page == "results":
         marker=dict(line=dict(color='#000000', width=2))
     )
     fig.update_layout(
-        height=320, # <--- THIS KEEPS IT ON ONE SCREEN
+        height=320, 
         showlegend=False,
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
