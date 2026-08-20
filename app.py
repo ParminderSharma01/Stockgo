@@ -10,7 +10,6 @@ from pypfopt.efficient_frontier import EfficientFrontier
 st.set_page_config(page_title="StockGo | AI Portfolio", layout="wide", initial_sidebar_state="collapsed")
 
 # --- DYNAMIC BACKGROUND GENERATOR ---
-# Removed cache to ensure it renders on every page switch
 def get_floating_background():
     tickers_pool = [
         "AAPL 150.25", "MSFT 310.10", "TSLA 220.50", "NVDA 450.00", "RELIANCE 2500.00", 
@@ -79,14 +78,14 @@ div[data-testid="stAppViewBlockContainer"] {{
     box-shadow: 0 15px 50px rgba(0, 0, 0, 0.8);
     max-height: 95vh; 
     overflow: hidden !important;
-    z-index: 10; /* Pulls the glass panel to the very front */
+    z-index: 10;
 }}
 
 /* Particle Background Setup */
 .stock-ticker-background {{
     position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-    z-index: 0; /* Put it right behind the glass panel, not behind Streamlit's canvas */
-    pointer-events: none; /* Prevents the invisible background from blocking clicks */
+    z-index: 0; 
+    pointer-events: none; 
     background-color: #050505; overflow: hidden;
 }}
 .floating-ticker {{
@@ -121,17 +120,18 @@ div[data-testid="stAppViewBlockContainer"] {{
 .gradient-text {{
     background: linear-gradient(135deg, #d4af37 0%, #fefaa0 50%, #d4af37 100%);
     -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    font-size: 2.6rem !important; font-weight: 800;
-    margin-bottom: -10px; padding-bottom: 10px;
+    font-weight: 800; padding-bottom: 5px;
 }}
 .engine-text {{
-    font-size: 1.2rem; color: #ffffff; font-weight: 600;
+    font-size: 1.3rem; color: #ffffff; font-weight: 600;
     letter-spacing: 1px; margin-bottom: 10px;
+    text-align: center; /* Centered */
 }}
 .motivational-subtext {{
-    font-size: 1.05rem; color: #b3b3b3; font-weight: 300;
+    font-size: 1.1rem; color: #b3b3b3; font-weight: 300;
     letter-spacing: 0.5px; line-height: 1.4;
-    border-left: 3px solid #d4af37; padding-left: 15px; margin-bottom: 15px; 
+    text-align: center; /* Centered */
+    margin-bottom: 20px; 
 }}
 </style>
 """
@@ -154,9 +154,10 @@ AVAILABLE_STOCKS = [
 # PAGE 1: INPUT SCREEN
 # ==========================================
 if st.session_state.page == "input":
+    # Centered and Enlarged Header
     st.markdown('''
-        <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 5px;">
-            <svg width="45" height="45" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <div style="display: flex; justify-content: center; align-items: center; gap: 20px; margin-bottom: 10px;">
+            <svg width="70" height="70" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <defs>
                     <linearGradient id="gold-grad" x1="0%" y1="100%" x2="100%" y2="0%">
                         <stop offset="0%" stop-color="#aa8529" />
@@ -169,9 +170,10 @@ if st.session_state.page == "input":
                 <circle cx="10" cy="13" r="1.5" fill="url(#gold-grad)"/>
                 <circle cx="14.5" cy="17" r="1.5" fill="url(#gold-grad)"/>
             </svg>
-            <p class="gradient-text" style="margin-bottom: 0; padding-bottom: 0;">StockGo</p>
+            <p class="gradient-text" style="margin-bottom: 0; font-size: 4rem !important; line-height: 1;">StockGo</p>
         </div>
     ''', unsafe_allow_html=True)
+    
     st.markdown('<p class="engine-text">AI Wealth Allocation Engine</p>', unsafe_allow_html=True)
     
     st.markdown('''
@@ -233,9 +235,10 @@ if st.session_state.page == "input":
 # PAGE 2: RESULTS SCREEN
 # ==========================================
 elif st.session_state.page == "results":
+    # Centered and Enlarged Header
     st.markdown('''
-        <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 5px;">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <div style="display: flex; justify-content: center; align-items: center; gap: 20px; margin-bottom: 10px;">
+            <svg width="60" height="60" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <defs>
                     <linearGradient id="gold-grad-2" x1="0%" y1="100%" x2="100%" y2="0%">
                         <stop offset="0%" stop-color="#aa8529" />
@@ -246,7 +249,7 @@ elif st.session_state.page == "results":
                 <path d="M3 21L10 13L14.5 17L22 6" stroke="url(#gold-grad-2)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
                 <path d="M15 6H22V13" stroke="url(#gold-grad-2)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
-            <p class="gradient-text" style="margin-bottom: 0; padding-bottom: 0; font-size: 2.2rem !important;">Optimization Complete</p>
+            <p class="gradient-text" style="margin-bottom: 0; font-size: 3.2rem !important; line-height: 1;">Optimization Complete</p>
         </div>
     ''', unsafe_allow_html=True)
     
