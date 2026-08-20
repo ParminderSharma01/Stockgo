@@ -5,13 +5,58 @@ from pypfopt import expected_returns, risk_models
 from pypfopt.efficient_frontier import EfficientFrontier
 
 st.set_page_config(page_title="AI Stock Allocator", layout="centered")
-# --- LUXURY UI STYLING ---
+# --- LUXURY UI STYLING & ANIMATED BACKGROUND ---
 luxury_css = """
 <style>
 /* Hide Streamlit default headers and footers */
 #MainMenu {visibility: hidden;}
 footer {visibility: hidden;}
 header {visibility: hidden;}
+
+/* The Animated Background Ticker */
+.stock-ticker-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: -999;
+    background-color: #050505;
+    overflow: hidden;
+    opacity: 0.15; /* Subtle glow so it doesn't distract */
+    font-family: 'Courier New', Courier, monospace;
+    font-weight: bold;
+    color: #d4af37; /* Luxury Gold */
+    font-size: 28px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+}
+
+.ticker-row {
+    white-space: nowrap;
+    animation: scroll-left linear infinite;
+}
+
+/* Different speeds for different rows */
+.ticker-fast { animation-duration: 25s; }
+.ticker-slow { animation-duration: 40s; animation-direction: reverse; }
+
+@keyframes scroll-left {
+    0% { transform: translateX(100%); }
+    100% { transform: translateX(-100%); }
+}
+
+/* Frosted Glass Effect for Main Content */
+.block-container {
+    background: rgba(15, 15, 15, 0.75);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-radius: 20px;
+    padding: 2rem;
+    border: 1px solid rgba(212, 175, 55, 0.2);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+}
 
 /* Premium Button Styling */
 .stButton>button {
@@ -32,15 +77,25 @@ header {visibility: hidden;}
 
 /* Sleek input boxes */
 div[data-baseweb="input"] > div, div[data-baseweb="select"] > div {
-    background-color: #1a1a1a;
+    background-color: rgba(26, 26, 26, 0.8);
     border: 1px solid #333333;
     border-radius: 10px;
 }
 </style>
+
+<!-- Injecting the HTML for the flying numbers -->
+<div class="stock-ticker-background">
+   <div class="ticker-row ticker-fast">AAPL 150.25 ▲ 1.2% &nbsp;&nbsp; MSFT 310.10 ▼ 0.5% &nbsp;&nbsp; TSLA 220.50 ▲ 2.1% &nbsp;&nbsp; NVDA 450.00 ▲ 3.5% &nbsp;&nbsp; RELIANCE 2500.00 ▲ 1.0% &nbsp;&nbsp; AAPL 150.25 ▲ 1.2%</div>
+   <div class="ticker-row ticker-slow">GOOGL 135.20 ▲ 0.8% &nbsp;&nbsp; AMZN 140.50 ▼ 1.1% &nbsp;&nbsp; META 300.20 ▲ 1.5% &nbsp;&nbsp; JNJ 160.00 ▼ 0.2% &nbsp;&nbsp; V 240.10 ▲ 0.9% &nbsp;&nbsp; GOOGL 135.20 ▲ 0.8%</div>
+   <div class="ticker-row ticker-fast" style="animation-duration: 20s;">TCS 3400.15 ▲ 0.5% &nbsp;&nbsp; INFY 1450.80 ▲ 1.2% &nbsp;&nbsp; HDFC 1600.00 ▼ 0.4% &nbsp;&nbsp; NFLX 400.20 ▲ 2.2% &nbsp;&nbsp; INTC 35.10 ▼ 1.5% &nbsp;&nbsp; TCS 3400.15 ▲ 0.5%</div>
+   <div class="ticker-row ticker-slow" style="animation-duration: 30s;">SBUX 95.50 ▲ 0.3% &nbsp;&nbsp; MCD 280.10 ▲ 0.7% &nbsp;&nbsp; DIS 85.40 ▼ 0.9% &nbsp;&nbsp; NKE 105.20 ▲ 1.1% &nbsp;&nbsp; BA 210.30 ▼ 1.8% &nbsp;&nbsp; SBUX 95.50 ▲ 0.3%</div>
+</div>
 """
 st.markdown(luxury_css, unsafe_allow_html=True)
+
+# --- UPDATE THE TITLE HERE ---
+st.title("📈 StockGo: AI Time-Horizon Allocator")
 # -------------------------
-st.title("🤖 AI Time-Horizon Allocator")
 st.write("Enter your budget and timeline. The AI will pull live data and calculate the optimal dollar split.")
 
 # --- THE MASTER STOCK LIST ---
