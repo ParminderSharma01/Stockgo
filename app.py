@@ -19,26 +19,23 @@ def get_floating_background():
     ]
     
     html = '<div class="stock-ticker-background">'
-    # Generate 75 floating stock tickers
     for _ in range(75):
         t = random.choice(tickers_pool)
         
-        # Randomize arrow up/down and color (Blue/Red)
         is_up = random.choice([True, False])
         is_blue = random.choice([True, False])
         arrow = "▲" if is_up else "▼"
-        color = "#3b82f6" if is_blue else "#ef4444" # Deep Blue or Bright Red
+        color = "#3b82f6" if is_blue else "#ef4444" 
         pct = round(random.uniform(0.1, 5.5), 1)
         
         colored_arrow = f'<span style="color: {color}; text-shadow: 0 0 5px {color}80;">{arrow} {pct}%</span>'
         
-        # Randomize position, size, and animation
         left = random.randint(-10, 100)
         top = random.randint(-10, 100)
         dur = random.randint(25, 60)
         delay = random.randint(0, 40)
         anim = random.choice(['float-1', 'float-2', 'float-3', 'float-4'])
-        size = random.choice(['14px', '18px', '24px', '32px']) # Creates a 3D depth effect
+        size = random.choice(['14px', '18px', '24px', '32px']) 
         target_op = random.choice(['0.1', '0.2', '0.3'])
         
         style = f"left: {left}vw; top: {top}vh; --target-opacity: {target_op}; font-size: {size}; animation: {anim} {dur}s linear infinite -{delay}s, fade {dur}s linear infinite -{delay}s;"
@@ -47,40 +44,50 @@ def get_floating_background():
     html += '</div>'
     return html
 
-# --- CSS INJECTION (NO-SCROLL & FLOATING PARTICLES) ---
+# --- CSS INJECTION (DEAD-CENTER, NO-SCROLL) ---
 luxury_css = f"""
 <style>
-/* 1. LOCK THE SCREEN (NO SCROLLING) */
-html, body, [data-testid="stAppViewContainer"], [data-testid="stAppViewBlockContainer"] {{
+/* 1. LOCK THE VIEWPORT (NO SCROLLING ANYWHERE) */
+html, body, [data-testid="stAppViewContainer"] {{
     overflow: hidden !important; 
-    max-height: 100vh !important;
+    height: 100vh !important;
+    width: 100vw !important;
+    margin: 0; padding: 0;
 }}
 
 /* Hide Streamlit default padding and menus */
 #MainMenu {{visibility: hidden;}}
 footer {{visibility: hidden;}}
 header {{visibility: hidden;}}
-.css-18e3th9 {{padding-top: 0rem;}} 
+.css-18e3th9 {{padding: 0 !important;}} 
+
+/* 2. DEAD-CENTER THE FROSTED GLASS CONTAINER */
 div[data-testid="stAppViewBlockContainer"] {{
-    padding-top: 2vh !important;
-    padding-bottom: 0 !important;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    max-width: 950px !important;
+    padding: 2.5rem 3rem !important; 
+    background: rgba(15, 15, 15, 0.85);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border-radius: 20px;
+    border: 1px solid rgba(212, 175, 55, 0.3);
+    box-shadow: 0 15px 50px rgba(0, 0, 0, 0.8);
+    max-height: 95vh; /* Prevents it from clipping off the top/bottom on small screens */
+    overflow: hidden !important;
 }}
 
 /* Particle Background Setup */
 .stock-ticker-background {{
-    position: fixed;
-    top: 0; left: 0; width: 100vw; height: 100vh;
-    z-index: -999;
-    background-color: #050505;
-    overflow: hidden;
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    z-index: -999; background-color: #050505; overflow: hidden;
 }}
 .floating-ticker {{
-    position: absolute;
-    font-family: 'Courier New', Courier, monospace;
-    font-weight: bold;
-    color: #d4af37; 
-    white-space: nowrap;
-    opacity: 0; /* Base opacity, handled by keyframes */
+    position: absolute; font-family: 'Courier New', Courier, monospace;
+    font-weight: bold; color: #d4af37; white-space: nowrap; opacity: 0; 
 }}
 
 /* Random Drift Animations */
@@ -90,36 +97,15 @@ div[data-testid="stAppViewBlockContainer"] {{
 @keyframes float-4 {{ 0% {{ transform: translate(0, 0) scale(1); }} 100% {{ transform: translate(-20vw, 15vh) scale(0.9); }} }}
 @keyframes fade {{ 0% {{ opacity: 0; }} 15% {{ opacity: var(--target-opacity); }} 85% {{ opacity: var(--target-opacity); }} 100% {{ opacity: 0; }} }}
 
-/* Frosted Glass Container */
-.block-container {{
-    background: rgba(15, 15, 15, 0.85);
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
-    border-radius: 20px;
-    padding: 2rem 3rem !important; 
-    border: 1px solid rgba(212, 175, 55, 0.3);
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
-    max-width: 950px;
-    margin-top: 2vh; 
-}}
-
 /* Premium Buttons */
 .stButton>button {{
-    border-radius: 12px;
-    background: linear-gradient(135deg, #d4af37 0%, #aa8529 100%);
-    color: #000000 !important;
-    font-weight: 700;
-    font-size: 16px;
-    border: none;
-    padding: 10px 30px; 
-    box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
-    transition: all 0.3s ease;
-    width: 100%;
-    margin-top: 10px;
+    border-radius: 12px; background: linear-gradient(135deg, #d4af37 0%, #aa8529 100%);
+    color: #000000 !important; font-weight: 700; font-size: 16px; border: none;
+    padding: 10px 30px; box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+    transition: all 0.3s ease; width: 100%; margin-top: 5px;
 }}
 .stButton>button:hover {{
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(212, 175, 55, 0.5);
+    transform: translateY(-2px); box-shadow: 0 6px 20px rgba(212, 175, 55, 0.5);
     background: linear-gradient(135deg, #f3cd57 0%, #c59b2f 100%);
 }}
 .stButton>button:active {{ transform: translateY(0px); }}
@@ -130,34 +116,21 @@ div[data-testid="stAppViewBlockContainer"] {{
 /* --- LUXURY TYPOGRAPHY --- */
 .gradient-text {{
     background: linear-gradient(135deg, #d4af37 0%, #fefaa0 50%, #d4af37 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    font-size: 2.8rem !important; 
-    font-weight: 800;
-    margin-bottom: -10px;
-    padding-bottom: 10px;
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    font-size: 2.6rem !important; font-weight: 800;
+    margin-bottom: -10px; padding-bottom: 10px;
 }}
 .engine-text {{
-    font-size: 1.3rem;
-    color: #ffffff;
-    font-weight: 600;
-    letter-spacing: 1px;
-    margin-bottom: 10px;
+    font-size: 1.2rem; color: #ffffff; font-weight: 600;
+    letter-spacing: 1px; margin-bottom: 10px;
 }}
 .motivational-subtext {{
-    font-size: 1.05rem;
-    color: #b3b3b3;
-    font-weight: 300;
-    letter-spacing: 0.5px;
-    line-height: 1.4;
-    border-left: 3px solid #d4af37;
-    padding-left: 15px;
-    margin-bottom: 20px; 
+    font-size: 1.05rem; color: #b3b3b3; font-weight: 300;
+    letter-spacing: 0.5px; line-height: 1.4;
+    border-left: 3px solid #d4af37; padding-left: 15px; margin-bottom: 15px; 
 }}
 </style>
 """
-
-# Inject CSS + Dynamic Background
 st.markdown(luxury_css + get_floating_background(), unsafe_allow_html=True)
 
 # --- STATE MANAGEMENT ---
@@ -177,7 +150,6 @@ AVAILABLE_STOCKS = [
 # PAGE 1: INPUT SCREEN
 # ==========================================
 if st.session_state.page == "input":
-    
     st.markdown('''
         <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 5px;">
             <svg width="45" height="45" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -257,7 +229,6 @@ if st.session_state.page == "input":
 # PAGE 2: RESULTS SCREEN
 # ==========================================
 elif st.session_state.page == "results":
-    
     st.markdown('''
         <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 5px;">
             <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -271,39 +242,32 @@ elif st.session_state.page == "results":
                 <path d="M3 21L10 13L14.5 17L22 6" stroke="url(#gold-grad-2)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
                 <path d="M15 6H22V13" stroke="url(#gold-grad-2)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
-            <p class="gradient-text" style="margin-bottom: 0; padding-bottom: 0; font-size: 2.4rem !important;">Optimization Complete</p>
+            <p class="gradient-text" style="margin-bottom: 0; padding-bottom: 0; font-size: 2.2rem !important;">Optimization Complete</p>
         </div>
     ''', unsafe_allow_html=True)
     
     st.markdown('''
-        <p class="motivational-subtext">
+        <p class="motivational-subtext" style="margin-bottom: 10px;">
         <b>Your Wealth Blueprint is ready.</b> We have optimized every dollar to maximize 
-        your potential returns while guarding against market volatility.
+        returns while mathematically guarding against market volatility.
         </p>
     ''', unsafe_allow_html=True)
     
     df = st.session_state.df
     
-    # Authentic Plotly Donut Chart
+    # Highly compressed chart height to ensure it fits the screen
     fig = px.pie(
-        df, 
-        values='Capital ($)', 
-        names='Asset', 
-        hole=0.6,
+        df, values='Capital ($)', names='Asset', hole=0.6,
         color_discrete_sequence=px.colors.sequential.YlOrBr 
     )
     fig.update_traces(
-        textposition='outside', 
-        textinfo='percent+label',
+        textposition='outside', textinfo='percent+label',
         marker=dict(line=dict(color='#000000', width=2))
     )
     fig.update_layout(
-        height=320, 
-        showlegend=False,
-        paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='rgba(0,0,0,0)',
-        font=dict(color='#f8f9fa', size=12),
-        margin=dict(t=0, b=0, l=0, r=0),
+        height=280, 
+        showlegend=False, paper_bgcolor='rgba(0,0,0,0)', plot_bgcolor='rgba(0,0,0,0)',
+        font=dict(color='#f8f9fa', size=12), margin=dict(t=0, b=0, l=0, r=0),
         annotations=[dict(text='StockGo', x=0.5, y=0.5, font_size=18, showarrow=False, font_color="#d4af37")]
     )
     
