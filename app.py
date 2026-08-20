@@ -8,7 +8,7 @@ from pypfopt.efficient_frontier import EfficientFrontier
 # --- PAGE CONFIG ---
 st.set_page_config(page_title="StockGo | AI Portfolio", layout="wide", initial_sidebar_state="collapsed")
 
-# --- CSS INJECTION (LUXURY UI & ANIMATION) ---
+# --- CSS INJECTION (LUXURY UI, ANIMATION & TYPOGRAPHY) ---
 luxury_css = """
 <style>
 /* Hide Streamlit elements */
@@ -74,12 +74,40 @@ header {visibility: hidden;}
 
 /* Table Styling */
 .stDataFrame { border-radius: 10px; overflow: hidden; }
+
+/* --- LUXURY TYPOGRAPHY --- */
+.gradient-text {
+    background: linear-gradient(135deg, #d4af37 0%, #fefaa0 50%, #d4af37 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-size: 3.2rem !important;
+    font-weight: 800;
+    margin-bottom: -10px;
+    padding-bottom: 10px;
+}
+.engine-text {
+    font-size: 1.6rem;
+    color: #ffffff;
+    font-weight: 600;
+    letter-spacing: 1px;
+    margin-bottom: 15px;
+}
+.motivational-subtext {
+    font-size: 1.15rem;
+    color: #b3b3b3;
+    font-weight: 300;
+    letter-spacing: 0.5px;
+    line-height: 1.6;
+    border-left: 3px solid #d4af37;
+    padding-left: 15px;
+    margin-bottom: 30px;
+}
 </style>
 
 <div class="stock-ticker-background">
-   <div class="ticker-row ticker-fast">AAPL 150.25 ▲ 1.2% &nbsp;&nbsp; MSFT 310.10 ▼ 0.5% &nbsp;&nbsp; TSLA 220.50 ▲ 2.1% &nbsp;&nbsp; NVDA 450.00 ▲ 3.5% &nbsp;&nbsp; RELIANCE 2500.00 ▲ 1.0%</div>
-   <div class="ticker-row ticker-slow">GOOGL 135.20 ▲ 0.8% &nbsp;&nbsp; AMZN 140.50 ▼ 1.1% &nbsp;&nbsp; META 300.20 ▲ 1.5% &nbsp;&nbsp; JNJ 160.00 ▼ 0.2% &nbsp;&nbsp; V 240.10 ▲ 0.9%</div>
-   <div class="ticker-row ticker-fast" style="animation-duration: 20s;">TCS 3400.15 ▲ 0.5% &nbsp;&nbsp; INFY 1450.80 ▲ 1.2% &nbsp;&nbsp; HDFC 1600.00 ▼ 0.4% &nbsp;&nbsp; NFLX 400.20 ▲ 2.2% &nbsp;&nbsp; INTC 35.10 ▼ 1.5%</div>
+   <div class="ticker-row ticker-fast">AAPL 150.25 ▲ 1.2% &nbsp;&nbsp; MSFT 310.10 ▼ 0.5% &nbsp;&nbsp; TSLA 220.50 ▲ 2.1% &nbsp;&nbsp; NVDA 450.00 ▲ 3.5% &nbsp;&nbsp; RELIANCE 2500.00 ▲ 1.0% &nbsp;&nbsp; AAPL 150.25 ▲ 1.2%</div>
+   <div class="ticker-row ticker-slow">GOOGL 135.20 ▲ 0.8% &nbsp;&nbsp; AMZN 140.50 ▼ 1.1% &nbsp;&nbsp; META 300.20 ▲ 1.5% &nbsp;&nbsp; JNJ 160.00 ▼ 0.2% &nbsp;&nbsp; V 240.10 ▲ 0.9% &nbsp;&nbsp; GOOGL 135.20 ▲ 0.8%</div>
+   <div class="ticker-row ticker-fast" style="animation-duration: 20s;">TCS 3400.15 ▲ 0.5% &nbsp;&nbsp; INFY 1450.80 ▲ 1.2% &nbsp;&nbsp; HDFC 1600.00 ▼ 0.4% &nbsp;&nbsp; NFLX 400.20 ▲ 2.2% &nbsp;&nbsp; INTC 35.10 ▼ 1.5% &nbsp;&nbsp; TCS 3400.15 ▲ 0.5%</div>
 </div>
 """
 st.markdown(luxury_css, unsafe_allow_html=True)
@@ -101,9 +129,16 @@ AVAILABLE_STOCKS = [
 # PAGE 1: INPUT SCREEN
 # ==========================================
 if st.session_state.page == "input":
-    st.title("📈 StockGo")
-    st.markdown("### AI Wealth Allocation Engine")
-    st.write("Configure your investment parameters. Our optimization matrix will determine the most mathematically sound portfolio.")
+    st.markdown('<p class="gradient-text">📈 StockGo</p>', unsafe_allow_html=True)
+    st.markdown('<p class="engine-text">AI Wealth Allocation Engine</p>', unsafe_allow_html=True)
+    
+    st.markdown('''
+        <p class="motivational-subtext">
+        Step into the future of wealth building. Tell us your financial vision, 
+        and let our intelligent engine craft a resilient, growth-focused portfolio 
+        designed entirely around your timeline.
+        </p>
+    ''', unsafe_allow_html=True)
     
     st.write("---")
     
@@ -119,7 +154,7 @@ if st.session_state.page == "input":
         default=["AAPL", "MSFT", "NVDA", "RELIANCE.NS", "TCS.NS"]
     )
 
-    st.write("") # Spacer
+    st.write("") 
     if st.button("INITIALIZE OPTIMIZATION"):
         if len(tickers) < 2:
             st.warning("Analysis requires a minimum of 2 assets.")
@@ -144,7 +179,7 @@ if st.session_state.page == "input":
                             amount = weight * total_investment
                             portfolio.append({
                                 "Asset": ticker,
-                                "Weight": weight, # Raw decimal for Plotly
+                                "Weight": weight, 
                                 "Allocation": f"{round(weight * 100, 2)}%",
                                 "Capital ($)": round(amount, 2)
                             })
@@ -156,14 +191,22 @@ if st.session_state.page == "input":
                     st.rerun()
                     
                 except Exception as e:
-                    st.error("Market data unavailable for selected assets. Please try again.")
+                    st.error(f"Market data unavailable for selected assets. Error: {e}")
 
 # ==========================================
 # PAGE 2: RESULTS SCREEN
 # ==========================================
 elif st.session_state.page == "results":
-    st.title("📊 Optimization Complete")
-    st.write("Based on Modern Portfolio Theory, here is your mathematically optimized capital distribution.")
+    st.markdown('<p class="gradient-text">📊 Optimization Complete</p>', unsafe_allow_html=True)
+    
+    st.markdown('''
+        <p class="motivational-subtext">
+        <b>Your Wealth Blueprint is ready.</b> We have optimized every dollar to maximize 
+        your potential returns while mathematically guarding against market volatility. 
+        Here is your path forward.
+        </p>
+    ''', unsafe_allow_html=True)
+    
     st.write("---")
     
     df = st.session_state.df
@@ -174,7 +217,7 @@ elif st.session_state.page == "results":
         values='Capital ($)', 
         names='Asset', 
         hole=0.6,
-        color_discrete_sequence=px.colors.sequential.YlOrBr # Luxury Gold/Brown palette
+        color_discrete_sequence=px.colors.sequential.YlOrBr 
     )
     fig.update_traces(
         textposition='outside', 
