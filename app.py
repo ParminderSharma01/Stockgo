@@ -56,7 +56,7 @@ if st.button("Run AI Allocation"):
                 st.dataframe(df, hide_index=True)
                 
                 st.write("### Portfolio Breakdown")
-                st.pie_chart(df.set_index("Stock")["Amount ($)"])
+                st.bar_chart(df.set_index("Stock")["Amount ($)"])
                 
             except Exception as e:
                 st.error(f"An error occurred: {e}")
