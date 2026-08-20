@@ -5,6 +5,41 @@ from pypfopt import expected_returns, risk_models
 from pypfopt.efficient_frontier import EfficientFrontier
 
 st.set_page_config(page_title="AI Stock Allocator", layout="centered")
+# --- LUXURY UI STYLING ---
+luxury_css = """
+<style>
+/* Hide Streamlit default headers and footers */
+#MainMenu {visibility: hidden;}
+footer {visibility: hidden;}
+header {visibility: hidden;}
+
+/* Premium Button Styling */
+.stButton>button {
+    border-radius: 20px;
+    background: linear-gradient(135deg, #d4af37 0%, #aa8529 100%);
+    color: #000000 !important;
+    font-weight: 600;
+    border: none;
+    padding: 10px 24px;
+    box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
+    transition: all 0.3s ease;
+}
+.stButton>button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(212, 175, 55, 0.5);
+    background: linear-gradient(135deg, #f3cd57 0%, #c59b2f 100%);
+}
+
+/* Sleek input boxes */
+div[data-baseweb="input"] > div, div[data-baseweb="select"] > div {
+    background-color: #1a1a1a;
+    border: 1px solid #333333;
+    border-radius: 10px;
+}
+</style>
+"""
+st.markdown(luxury_css, unsafe_allow_html=True)
+# -------------------------
 st.title("🤖 AI Time-Horizon Allocator")
 st.write("Enter your budget and timeline. The AI will pull live data and calculate the optimal dollar split.")
 
