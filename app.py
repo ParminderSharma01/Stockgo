@@ -1,52 +1,62 @@
 import streamlit as st
 import yfinance as yf
 import pandas as pd
-import numpy as np
+from pypfopt import expected_returns, risk_models
+from pypfopt.efficient_frontier import EfficientFrontier
 
-# 1. Setup the website look
 st.set_page_config(page_title="AI Stock Allocator", layout="centered")
-st.title("📈 AI Portfolio Allocator")
-st.write("Tell us how much you want to invest, and the AI will calculate the best way to split it based on the past year of data.")
+st.title("🤖 AI Time-Horizon Allocator")
+st.write("Enter your budget and timeline. The AI will pull live data from Yahoo Finance and calculate the optimal dollar split.")
 
-# 2. Get inputs from the user
-investment = st.number_input("Total Money to Invest ($):", min_value=10.0, value=1000.0)
-tickers_input = st.text_input("Enter Stocks (comma-separated, e.g., AAPL, MSFT, GOOGL):", "AAPL, MSFT, GOOGL")
+# --- USER INPUTS ---
+st.subheader("1. Your Investment Details")
+total_investment = st.number_input("Total Amount to Invest ($):", min_value=100.0, value=5000.0)
+time_horizon = st.slider("Time Horizon (Years):", min_value=1, max_value=10, value=3)
+tickers_input = st.text_input("Stocks to consider (comma-separated):", "AAPL, MSFT, JNJ, PG, GOOGL")
 
-# 3. The magic happens when they click the button
 if st.button("Run AI Allocation"):
     tickers = [t.strip().upper() for t in tickers_input.split(",")]
     
     if len(tickers) < 2:
         st.warning("Please enter at least 2 stocks!")
     else:
-        with st.spinner("Downloading free data from Yahoo Finance..."):
-            # Get Data
-            data = yf.download(tickers, period="1y")['Close']
-            
-            # Math/AI: Calculate Growth vs Risk
-            daily_returns = data.pct_change().dropna()
-            annual_return = daily_returns.mean() * 252
-            annual_risk = daily_returns.std() * np.sqrt(252)
-            
-            # Score = Growth divided by Risk
-            score = annual_return / annual_risk
-            score = score[score > 0] # Remove losing stocks
-            
-            if score.empty:
-                st.error("These stocks had a negative trend this year. Try others!")
-            else:
-                # Calculate percentages
-                weights = score / score.sum()
+        with st.spinner("Fetching live data from yfinance..."):
+            try:
+                # --- FETCH DATA WITH YFINANCE ---
+                # We pull history based on how long they want to invest
+                data = yf.download(tickers, period="5y")['Close']
                 
-                # Show the results
-                st.success("Analysis Complete!")
+                # --- AI MATH (Portfolio Optimization) ---
+                # Calculate expected returns scaled to their time horizon
+                mu = expected_returns.ema_historical_return(data, span=int(252 * time_horizon))
+                S = risk_models.sample_cov(data)
                 
-                df = pd.DataFrame({
-                    "Stock": weights.index,
-                    "Weight (%)": (weights * 100).round(2),
-                    "Amount ($)": (weights * investment).round(2)
-                })
+                # Optimize for the best return vs risk
+                ef = EfficientFrontier(mu, S)
+                raw_weights = ef.max_sharpe()
+                cleaned_weights = ef.clean_weights()
                 
+                # --- CALCULATE DOLLAR AMOUNTS ---
+                portfolio = []
+                for ticker, weight in cleaned_weights.items():
+                    # Only show stocks that the AI decided to put money into
+                    if weight > 0:
+                        amount = weight * total_investment
+                        portfolio.append({
+                            "Stock": ticker,
+                            "Allocation": f"{round(weight * 100, 2)}%",
+                            "Amount ($)": round(amount, 2)
+                        })
+                
+                # --- DISPLAY RESULTS ---
+                st.success("Allocation Calculated Successfully!")
+                df = pd.DataFrame(portfolio)
+                
+                st.subheader("Your Recommended Portfolio")
                 st.dataframe(df, hide_index=True)
-                st.write("### Visual Breakdown")
-                st.bar_chart(df.set_index("Stock")["Amount ($)"])
+                
+                st.write("### Portfolio Breakdown")
+                st.pie_chart(df.set_index("Stock")["Amount ($)"])
+                
+            except Exception as e:
+                st.error("An error occurred. Make sure the stock symbols are correct!")
