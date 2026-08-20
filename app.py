@@ -129,7 +129,26 @@ AVAILABLE_STOCKS = [
 # PAGE 1: INPUT SCREEN
 # ==========================================
 if st.session_state.page == "input":
-    st.markdown('<p class="gradient-text">📈 StockGo</p>', unsafe_allow_html=True)
+    
+    # Page 1 Logo and Title
+    st.markdown('''
+        <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 5px;">
+            <svg width="55" height="55" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <linearGradient id="gold-grad" x1="0%" y1="100%" x2="100%" y2="0%">
+                        <stop offset="0%" stop-color="#aa8529" />
+                        <stop offset="50%" stop-color="#fefaa0" />
+                        <stop offset="100%" stop-color="#d4af37" />
+                    </linearGradient>
+                </defs>
+                <path d="M3 21L10 13L14.5 17L22 6" stroke="url(#gold-grad)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M15 6H22V13" stroke="url(#gold-grad)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                <circle cx="10" cy="13" r="1.5" fill="url(#gold-grad)"/>
+                <circle cx="14.5" cy="17" r="1.5" fill="url(#gold-grad)"/>
+            </svg>
+            <p class="gradient-text" style="margin-bottom: 0; padding-bottom: 0;">StockGo</p>
+        </div>
+    ''', unsafe_allow_html=True)
     st.markdown('<p class="engine-text">AI Wealth Allocation Engine</p>', unsafe_allow_html=True)
     
     st.markdown('''
@@ -197,7 +216,24 @@ if st.session_state.page == "input":
 # PAGE 2: RESULTS SCREEN
 # ==========================================
 elif st.session_state.page == "results":
-    st.markdown('<p class="gradient-text">📊 Optimization Complete</p>', unsafe_allow_html=True)
+    
+    # Page 2 Logo and Title
+    st.markdown('''
+        <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 5px;">
+            <svg width="45" height="45" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <linearGradient id="gold-grad-2" x1="0%" y1="100%" x2="100%" y2="0%">
+                        <stop offset="0%" stop-color="#aa8529" />
+                        <stop offset="50%" stop-color="#fefaa0" />
+                        <stop offset="100%" stop-color="#d4af37" />
+                    </linearGradient>
+                </defs>
+                <path d="M3 21L10 13L14.5 17L22 6" stroke="url(#gold-grad-2)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M15 6H22V13" stroke="url(#gold-grad-2)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <p class="gradient-text" style="margin-bottom: 0; padding-bottom: 0; font-size: 2.8rem !important;">Optimization Complete</p>
+        </div>
+    ''', unsafe_allow_html=True)
     
     st.markdown('''
         <p class="motivational-subtext">
