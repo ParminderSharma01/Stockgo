@@ -8,13 +8,24 @@ from pypfopt.efficient_frontier import EfficientFrontier
 # --- PAGE CONFIG ---
 st.set_page_config(page_title="StockGo | AI Portfolio", layout="wide", initial_sidebar_state="collapsed")
 
-# --- CSS INJECTION (LUXURY UI, ANIMATION & TYPOGRAPHY) ---
+# --- CSS INJECTION (NO-SCROLL LUXURY UI) ---
 luxury_css = """
 <style>
-/* Hide Streamlit elements */
+/* 1. LOCK THE SCREEN (NO SCROLLING) */
+html, body, [data-testid="stAppViewContainer"], [data-testid="stAppViewBlockContainer"] {
+    overflow: hidden !important; 
+    max-height: 100vh !important;
+}
+
+/* Hide Streamlit default padding and menus */
 #MainMenu {visibility: hidden;}
 footer {visibility: hidden;}
 header {visibility: hidden;}
+.css-18e3th9 {padding-top: 0rem;} /* Older Streamlit versions */
+div[data-testid="stAppViewBlockContainer"] {
+    padding-top: 2vh !important;
+    padding-bottom: 0 !important;
+}
 
 /* The Animated Background Ticker */
 .stock-ticker-background {
@@ -40,16 +51,17 @@ header {visibility: hidden;}
 .ticker-slow { animation-duration: 40s; animation-direction: reverse; }
 @keyframes scroll-left { 0% { transform: translateX(100%); } 100% { transform: translateX(-100%); } }
 
-/* Frosted Glass Container */
+/* Frosted Glass Container - Compacted for 1 screen */
 .block-container {
     background: rgba(15, 15, 15, 0.85);
     backdrop-filter: blur(15px);
     -webkit-backdrop-filter: blur(15px);
     border-radius: 20px;
-    padding: 3rem;
+    padding: 2rem 3rem !important; /* Tighter padding */
     border: 1px solid rgba(212, 175, 55, 0.3);
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
-    max-width: 900px;
+    max-width: 950px;
+    margin-top: 2vh; 
 }
 
 /* Premium Buttons */
@@ -60,10 +72,11 @@ header {visibility: hidden;}
     font-weight: 700;
     font-size: 16px;
     border: none;
-    padding: 12px 30px;
+    padding: 10px 30px; /* Slightly thinner */
     box-shadow: 0 4px 15px rgba(212, 175, 55, 0.3);
     transition: all 0.3s ease;
     width: 100%;
+    margin-top: 10px;
 }
 .stButton>button:hover {
     transform: translateY(-2px);
@@ -75,32 +88,32 @@ header {visibility: hidden;}
 /* Table Styling */
 .stDataFrame { border-radius: 10px; overflow: hidden; }
 
-/* --- LUXURY TYPOGRAPHY --- */
+/* --- LUXURY TYPOGRAPHY (Compacted) --- */
 .gradient-text {
     background: linear-gradient(135deg, #d4af37 0%, #fefaa0 50%, #d4af37 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    font-size: 3.2rem !important;
+    font-size: 2.8rem !important; /* Slightly smaller to fit */
     font-weight: 800;
     margin-bottom: -10px;
     padding-bottom: 10px;
 }
 .engine-text {
-    font-size: 1.6rem;
+    font-size: 1.3rem;
     color: #ffffff;
     font-weight: 600;
     letter-spacing: 1px;
-    margin-bottom: 15px;
+    margin-bottom: 10px;
 }
 .motivational-subtext {
-    font-size: 1.15rem;
+    font-size: 1.05rem;
     color: #b3b3b3;
     font-weight: 300;
     letter-spacing: 0.5px;
-    line-height: 1.6;
+    line-height: 1.4;
     border-left: 3px solid #d4af37;
     padding-left: 15px;
-    margin-bottom: 30px;
+    margin-bottom: 20px; /* Tighter gap */
 }
 </style>
 
@@ -130,10 +143,9 @@ AVAILABLE_STOCKS = [
 # ==========================================
 if st.session_state.page == "input":
     
-    # Page 1 Logo and Title
     st.markdown('''
         <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 5px;">
-            <svg width="55" height="55" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg width="45" height="45" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <defs>
                     <linearGradient id="gold-grad" x1="0%" y1="100%" x2="100%" y2="0%">
                         <stop offset="0%" stop-color="#aa8529" />
@@ -159,8 +171,6 @@ if st.session_state.page == "input":
         </p>
     ''', unsafe_allow_html=True)
     
-    st.write("---")
-    
     col1, col2 = st.columns(2)
     with col1:
         total_investment = st.number_input("Capital Commitment ($):", min_value=100.0, value=10000.0, step=1000.0)
@@ -173,14 +183,12 @@ if st.session_state.page == "input":
         default=["AAPL", "MSFT", "NVDA", "RELIANCE.NS", "TCS.NS"]
     )
 
-    st.write("") 
     if st.button("INITIALIZE OPTIMIZATION"):
         if len(tickers) < 2:
             st.warning("Analysis requires a minimum of 2 assets.")
         else:
             with st.spinner("Compiling live market data and calculating Efficient Frontier..."):
                 try:
-                    # AI Math
                     history_needed = f"{time_horizon + 1}y"
                     data = yf.download(tickers, period=history_needed)['Close']
                     
@@ -191,7 +199,6 @@ if st.session_state.page == "input":
                     raw_weights = ef.max_sharpe()
                     cleaned_weights = ef.clean_weights()
                     
-                    # Formatting Data
                     portfolio = []
                     for ticker, weight in cleaned_weights.items():
                         if weight > 0:
@@ -203,7 +210,6 @@ if st.session_state.page == "input":
                                 "Capital ($)": round(amount, 2)
                             })
                     
-                    # Save to state and switch page
                     df = pd.DataFrame(portfolio)
                     st.session_state.df = df.sort_values(by="Capital ($)", ascending=False)
                     st.session_state.page = "results"
@@ -217,10 +223,9 @@ if st.session_state.page == "input":
 # ==========================================
 elif st.session_state.page == "results":
     
-    # Page 2 Logo and Title
     st.markdown('''
         <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 5px;">
-            <svg width="45" height="45" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <defs>
                     <linearGradient id="gold-grad-2" x1="0%" y1="100%" x2="100%" y2="0%">
                         <stop offset="0%" stop-color="#aa8529" />
@@ -231,23 +236,20 @@ elif st.session_state.page == "results":
                 <path d="M3 21L10 13L14.5 17L22 6" stroke="url(#gold-grad-2)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
                 <path d="M15 6H22V13" stroke="url(#gold-grad-2)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
-            <p class="gradient-text" style="margin-bottom: 0; padding-bottom: 0; font-size: 2.8rem !important;">Optimization Complete</p>
+            <p class="gradient-text" style="margin-bottom: 0; padding-bottom: 0; font-size: 2.4rem !important;">Optimization Complete</p>
         </div>
     ''', unsafe_allow_html=True)
     
     st.markdown('''
         <p class="motivational-subtext">
         <b>Your Wealth Blueprint is ready.</b> We have optimized every dollar to maximize 
-        your potential returns while mathematically guarding against market volatility. 
-        Here is your path forward.
+        your potential returns while guarding against market volatility.
         </p>
     ''', unsafe_allow_html=True)
     
-    st.write("---")
-    
     df = st.session_state.df
     
-    # Authentic Plotly Donut Chart
+    # Authentic Plotly Donut Chart - Height explicitly restricted
     fig = px.pie(
         df, 
         values='Capital ($)', 
@@ -261,25 +263,23 @@ elif st.session_state.page == "results":
         marker=dict(line=dict(color='#000000', width=2))
     )
     fig.update_layout(
+        height=320, # <--- THIS KEEPS IT ON ONE SCREEN
         showlegend=False,
         paper_bgcolor='rgba(0,0,0,0)',
         plot_bgcolor='rgba(0,0,0,0)',
-        font=dict(color='#f8f9fa', size=14),
-        margin=dict(t=10, b=10, l=10, r=10),
-        annotations=[dict(text='StockGo', x=0.5, y=0.5, font_size=20, showarrow=False, font_color="#d4af37")]
+        font=dict(color='#f8f9fa', size=12),
+        margin=dict(t=0, b=0, l=0, r=0),
+        annotations=[dict(text='StockGo', x=0.5, y=0.5, font_size=18, showarrow=False, font_color="#d4af37")]
     )
     
     col1, col2 = st.columns([1, 1.2])
     with col1:
-        st.write("#### Capital Distribution")
-        # Format the display table without the raw 'Weight' column
         display_df = df.drop(columns=['Weight'])
         st.dataframe(display_df, use_container_width=True, hide_index=True)
     
     with col2:
         st.plotly_chart(fig, use_container_width=True)
 
-    st.write("---")
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         if st.button("← CONFIGURE NEW PORTFOLIO"):
