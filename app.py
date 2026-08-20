@@ -10,7 +10,7 @@ from pypfopt.efficient_frontier import EfficientFrontier
 st.set_page_config(page_title="StockGo | AI Portfolio", layout="wide", initial_sidebar_state="collapsed")
 
 # --- DYNAMIC BACKGROUND GENERATOR ---
-@st.cache_data
+# Removed cache to ensure it renders on every page switch
 def get_floating_background():
     tickers_pool = [
         "AAPL 150.25", "MSFT 310.10", "TSLA 220.50", "NVDA 450.00", "RELIANCE 2500.00", 
@@ -36,7 +36,7 @@ def get_floating_background():
         delay = random.randint(0, 40)
         anim = random.choice(['float-1', 'float-2', 'float-3', 'float-4'])
         size = random.choice(['14px', '18px', '24px', '32px']) 
-        target_op = random.choice(['0.1', '0.2', '0.3'])
+        target_op = random.choice(['0.1', '0.15', '0.2'])
         
         style = f"left: {left}vw; top: {top}vh; --target-opacity: {target_op}; font-size: {size}; animation: {anim} {dur}s linear infinite -{delay}s, fade {dur}s linear infinite -{delay}s;"
         html += f'<div class="floating-ticker" style="{style}">{t} {colored_arrow}</div>'
@@ -47,12 +47,13 @@ def get_floating_background():
 # --- CSS INJECTION (DEAD-CENTER, NO-SCROLL) ---
 luxury_css = f"""
 <style>
-/* 1. LOCK THE VIEWPORT (NO SCROLLING ANYWHERE) */
+/* 1. LOCK THE VIEWPORT */
 html, body, [data-testid="stAppViewContainer"] {{
     overflow: hidden !important; 
     height: 100vh !important;
     width: 100vw !important;
     margin: 0; padding: 0;
+    background-color: #050505 !important;
 }}
 
 /* Hide Streamlit default padding and menus */
@@ -76,14 +77,17 @@ div[data-testid="stAppViewBlockContainer"] {{
     border-radius: 20px;
     border: 1px solid rgba(212, 175, 55, 0.3);
     box-shadow: 0 15px 50px rgba(0, 0, 0, 0.8);
-    max-height: 95vh; /* Prevents it from clipping off the top/bottom on small screens */
+    max-height: 95vh; 
     overflow: hidden !important;
+    z-index: 10; /* Pulls the glass panel to the very front */
 }}
 
 /* Particle Background Setup */
 .stock-ticker-background {{
     position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-    z-index: -999; background-color: #050505; overflow: hidden;
+    z-index: 0; /* Put it right behind the glass panel, not behind Streamlit's canvas */
+    pointer-events: none; /* Prevents the invisible background from blocking clicks */
+    background-color: #050505; overflow: hidden;
 }}
 .floating-ticker {{
     position: absolute; font-family: 'Courier New', Courier, monospace;
@@ -255,7 +259,6 @@ elif st.session_state.page == "results":
     
     df = st.session_state.df
     
-    # Highly compressed chart height to ensure it fits the screen
     fig = px.pie(
         df, values='Capital ($)', names='Asset', hole=0.6,
         color_discrete_sequence=px.colors.sequential.YlOrBr 
