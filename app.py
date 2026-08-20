@@ -59,4 +59,4 @@ if st.button("Run AI Allocation"):
                 st.pie_chart(df.set_index("Stock")["Amount ($)"])
                 
             except Exception as e:
-                st.error("An error occurred. Make sure the stock symbols are correct!")
+                st.error(f"An error occurred: {e}")
